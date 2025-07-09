@@ -1,0 +1,67 @@
+---
+version: 3
+images:
+  base_image:
+    # Use the default Ansible Execution Environment image for RHEL 9
+    # Adjust the exact tag based on what's available in your Red Hat registry or Quay.io.
+    # Examples:
+    #   registry.redhat.io/ansible-automation-platform-24/ansible-automation-platform-ee-minimal-rhel9:latest
+    #   quay.io/ansible/ansible-runner:latest (often UBI9 based)
+    name: registry.redhat.io/ubi9:latest
+dependencies:
+  python_interpreter:
+    package_system: python3.9
+    python_path: /usr/bin/python3.9
+  ansible_core:
+    package_pip: ansible-core~=2.15
+  ansible_runner:
+    package_pip: ansible-runner~=2.3
+  system:
+    # System dependencies needed for Google Cloud CLI
+    - dnf-plugins-core
+  python:
+    # Python packages if you plan to use `google.cloud` Ansible collection
+    - google-auth
+    # You'll also likely need the `google.cloud` Ansible collection itself
+    # for Ansible modules to interact with GCP. This is installed via galaxy.
+    # Add other google-cloud-sdk related python dependencies if you run into issues later
+    # e.g., google-cloud-storage, google-cloud-compute etc.
+  galaxy:
+    # Install the Google Cloud Ansible collection if you plan to use GCP modules in playbooks
+    collections:
+      - google.cloud
+
+additional_build_steps:
+  # Use 'append_final' to add these steps at the very end of the build process
+  append_final:
+    # Create the Google Cloud SDK repository file manually for microdnf
+    # This replaces 'dnf config-manager --add-repo'
+    - |
+      RUN printf "[google-cloud-cli]\n\
+      name=Google Cloud CLI\n\
+      baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-x86_64\n\
+      enabled=1\n\
+      gpgcheck=1\n\
+      repo_gpgcheck=0\n\
+      gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg\n\
+      " > /etc/yum.repos.d/google-cloud-cli.repo
+    # Import the GPG key (still necessary)
+    - RUN rpm --import https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    - RUN dnf install -y libxcrypt-compat.x86_64
+    # Install the Google Cloud CLI using microdnf
+    - RUN dnf install -y google-cloud-cli
+    # Clean up microdnf cache
+    - RUN dnf clean all && rm -rf /var/cache/microdnf
+    # Add gcloud to the PATH
+    - ENV PATH="${PATH}:/usr/local/gcloud/google-cloud-sdk/bin"
+
+# (Optional) You might want to define an entrypoint if you intend for this
+# EE to primarily serve as a gcloud CLI container, rather than just an Ansible EE.
+# By default, Ansible EEs have an entrypoint that sets up the Ansible environment.
+# If you uncomment this, it will override the default EE entrypoint.
+# options:
+#   container_init:
+#     # This assumes you want a bash shell to directly use gcloud
+#     # If you want it to run 'gcloud version' when started, use:
+#     # entrypoint: ["gcloud", "version"]
+#     entrypoint: ["/bin/bash"]
