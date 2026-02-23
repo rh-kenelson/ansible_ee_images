@@ -1,13 +1,13 @@
 ---
 version: 3
-images:
-  base_image:
+#images:
+#  base_image:
     # Use the default Ansible Execution Environment image for RHEL 9
     # Adjust the exact tag based on what's available in your Red Hat registry or Quay.io.
     # Examples:
     #   registry.redhat.io/ansible-automation-platform-24/ansible-automation-platform-ee-minimal-rhel9:latest
     #   quay.io/ansible/ansible-runner:latest (often UBI9 based)
-    name: registry.redhat.io/ubi9:latest
+#    name: registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel9:latest
 dependencies:
   python_interpreter:
     package_system: python3.9

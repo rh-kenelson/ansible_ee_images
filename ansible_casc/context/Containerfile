@@ -1,14 +1,14 @@
-ARG EE_BASE_IMAGE="quay.io/ansible/ansible-runner:latest"
-ARG PYCMD="/usr/bin/python3.9"
-ARG PYPKG="python3.9"
+ARG EE_BASE_IMAGE="registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
+ARG PYCMD="/usr/bin/python3.11"
+ARG PYPKG="python3.11"
 ARG PKGMGR_PRESERVE_CACHE=""
 ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=""
 ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS=""
-ARG ANSIBLE_INSTALL_REFS="ansible-core~=2.15 ansible-runner~=2.3"
-ARG PKGMGR="/usr/bin/dnf"
+ARG ANSIBLE_INSTALL_REFS="ansible-core ansible-runner"
+ARG PKGMGR="/usr/bin/microdnf"
 
 # Base build stage
-FROM $EE_BASE_IMAGE as base
+FROM $EE_BASE_IMAGE AS base
 USER root
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ARG EE_BASE_IMAGE
@@ -27,7 +27,7 @@ RUN /output/scripts/pip_install $PYCMD
 RUN $PYCMD -m pip install --no-cache-dir $ANSIBLE_INSTALL_REFS
 
 # Galaxy build stage
-FROM base as galaxy
+FROM base AS galaxy
 ARG EE_BASE_IMAGE
 ARG PYCMD
 ARG PYPKG
@@ -37,6 +37,7 @@ ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
 ARG ANSIBLE_INSTALL_REFS
 ARG PKGMGR
 
+COPY ./ansible.cfg /etc/ansible/ansible.cfg
 RUN /output/scripts/check_galaxy
 COPY _build /build
 WORKDIR /build
@@ -46,7 +47,7 @@ RUN ansible-galaxy role install $ANSIBLE_GALAXY_CLI_ROLE_OPTS -r requirements.ym
 RUN ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --collections-path "/usr/share/ansible/collections"
 
 # Builder build stage
-FROM base as builder
+FROM base AS builder
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 WORKDIR /build
 ARG EE_BASE_IMAGE
@@ -68,7 +69,7 @@ RUN $PYCMD /output/scripts/introspect.py introspect --user-pip=requirements.txt 
 RUN /output/scripts/assemble
 
 # Final build stage
-FROM base as final
+FROM base AS final
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ARG EE_BASE_IMAGE
 ARG PYCMD
@@ -89,20 +90,6 @@ RUN chmod ug+rw /etc/passwd
 RUN mkdir -p /runner && chgrp 0 /runner && chmod -R ug+rwx /runner
 WORKDIR /runner
 RUN $PYCMD -m pip install --no-cache-dir 'dumb-init==1.2.5'
-RUN printf "[google-cloud-cli]\n\
-name=Google Cloud CLI\n\
-baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-x86_64\n\
-enabled=1\n\
-gpgcheck=1\n\
-repo_gpgcheck=0\n\
-gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg\n\
-" > /etc/yum.repos.d/google-cloud-cli.repo
-
-RUN rpm --import https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-RUN dnf install -y libxcrypt-compat.x86_64
-RUN dnf install -y google-cloud-cli
-RUN dnf clean all && rm -rf /var/cache/microdnf
-ENV PATH="${PATH}:/usr/local/gcloud/google-cloud-sdk/bin"
 RUN rm -rf /output
 LABEL ansible-execution-environment=true
 USER 1000

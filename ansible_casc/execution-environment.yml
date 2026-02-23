@@ -1,0 +1,31 @@
+---
+version: 3
+images:
+ base_image:
+    # Needs login
+    name: registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest
+dependencies:
+  python_interpreter:
+    package_system: python3.11
+    python_path: /usr/bin/python3.11
+  # Use Ansible Core 2.14
+  ansible_core:
+    package_pip: ansible-core
+  # Runner
+  ansible_runner:
+    package_pip: ansible-runner
+  # Collections to be installed using Galaxy
+  galaxy:
+    collections:
+      - infra.aap_configuration
+      - infra.aap_configuration_extended
+      - name: ansible.controller
+      - name: ansible.platform
+      - name: ansible.eda
+  system: bindep.txt
+additional_build_steps:
+  prepend_galaxy:
+  - COPY ./ansible.cfg /etc/ansible/ansible.cfg
+
+options:
+  package_manager_path: /usr/bin/microdnf
