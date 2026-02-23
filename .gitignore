@@ -1,2 +1,1 @@
-ansible.cfg
-ansible_casc/context/ansible.cfg
+**/ansible.cfg
