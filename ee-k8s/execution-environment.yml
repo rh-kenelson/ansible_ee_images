@@ -1,0 +1,13 @@
+---
+version: 3
+
+images:
+  base_image:
+    name: registry.access.redhat.com/ubi9/python-311:latest
+
+dependencies:
+  collections:
+    - name: kubernetes.core
+
+options:
+  package_manager_path: /usr/bin/microdnf
