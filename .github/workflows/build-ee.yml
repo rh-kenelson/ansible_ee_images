@@ -1,0 +1,91 @@
+name: Build and Push Multiple EEs
+
+on:
+  push:
+    branches:
+      - main
+    # Triggers if any file changes inside any directory starting with 'ee-'
+    paths:
+      - 'ee-*/**'
+  workflow_dispatch:
+
+jobs:
+  # STEP 1: Detect which folders actually changed
+  detect-changes:
+    runs-on: [self-hosted, ansible-ee-runner]
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Fetch history so we can compare commits
+
+      - id: set-matrix
+        name: Find changed EE directories
+        run: |
+          # Get list of changed files between current commit and previous commit
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Files changed: $CHANGED_FILES"
+          
+          # Extract the top-level directory names that start with 'ee-'
+          DIRS=$(echo "$CHANGED_FILES" | grep '^ee-' | cut -d'/' -f1 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          
+          echo "Directories to build: $DIRS"
+          echo "matrix=$DIRS" >> $GITHUB_OUTPUT
+
+  # STEP 2: Build the changed EEs in parallel using a matrix
+  build-and-push:
+    needs: detect-changes
+    # Only run if there are actual EE directories to build
+    if: ${{ needs.detect-changes.outputs.matrix != '[]' && needs.detect-changes.outputs.matrix != '' }}
+    runs-on: [self-hosted, ansible-ee-runner]
+    
+    strategy:
+      matrix:
+        ee_dir: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      fail-fast: false # Don't cancel other builds if one fails
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Ansible Builder
+        run: |
+          pip install --upgrade pip
+          pip install ansible-builder
+
+      - name: Log in to Private Automation Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.AUTOMATION_HUB_HOST }}
+          username: ${{ secrets.AUTOMATION_HUB_USERNAME }}
+          password: ${{ secrets.AUTOMATION_HUB_PASSWORD }}
+
+      - name: Determine Image Name and Tag
+        id: prep
+        run: |
+          # The image name will match the directory name (e.g., ee-networking)
+          IMAGE_NAME="${{ secrets.AUTOMATION_HUB_HOST }}/ee/${{ matrix.ee_dir }}"
+          TAG="latest"
+          
+          echo "fullname=${IMAGE_NAME}:${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Build Execution Environment Context
+        # Run ansible-builder INSIDE the specific EE directory
+        working-directory: ${{ matrix.ee_dir }}
+        run: |
+          ansible-builder create
+
+      - name: Build and Push Image using Docker Buildx
+        uses: docker/build-push-action@v5
+        with:
+          # Point the build context to the subfolder's generated context
+          context: ./${{ matrix.ee_dir }}/context
+          push: true
+          tags: ${{ steps.prep.outputs.fullname }}
