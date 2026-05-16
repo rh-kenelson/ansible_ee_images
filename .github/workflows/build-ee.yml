@@ -12,7 +12,7 @@ on:
 jobs:
   # STEP 1: Detect which folders actually changed
   detect-changes:
-    runs-on: [self-hosted, ansible-ee-runner]
+    runs-on: [self-hosted, aap-bridge]
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
