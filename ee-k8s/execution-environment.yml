@@ -3,7 +3,7 @@ version: 3
 
 images:
   base_image:
-    name: registry.access.redhat.com/ubi9/python39:latest
+    name: registry.access.redhat.com/ubi9/python311:latest
 dependencies:
   ansible_core:
     package_pip: ansible-core==2.15.0
