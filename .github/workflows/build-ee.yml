@@ -80,7 +80,9 @@ jobs:
         env:
           ANSIBLE_GALAXY_SERVER_VERIFY_SSL: "false"
         run: |
-          ansible-builder create --container-runtime podman
+          ansible-builder build \
+            --container-runtime=podman \
+            --tag=${{ steps.prep.outputs.fullname }}
 
       - name: Build EE Image with Podman
         working-directory: ${{ matrix.ee_dir }}
