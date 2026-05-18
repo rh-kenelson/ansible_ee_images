@@ -8,6 +8,7 @@ images:
 dependencies:
   collections:
     - name: kubernetes.core
+    - name: google.cloud
 
 options:
   package_manager_path: /usr/bin/microdnf
