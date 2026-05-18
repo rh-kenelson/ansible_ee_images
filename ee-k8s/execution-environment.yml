@@ -3,11 +3,16 @@ version: 3
 
 images:
   base_image:
-    name: registry.access.redhat.com/ubi9/python-311:latest
+    name: registry.access.redhat.com/ubi9/ubi-minimal:latest
+
 dependencies:
   ansible_core:
     package_pip: ansible-core==2.15.0
-  galaxy: requirements.yml
 
-options:
-  package_manager_path: /usr/bin/microdnf
+  ansible_runner:
+    package_pip: ansible-runner-2.3.4
+  system:
+    - python3-pip [platform:rpm]
+    - python3-devel [platform:rpm]
+
+  galaxy: requirements.yml
