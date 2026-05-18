@@ -1,31 +1,40 @@
 ---
 version: 3
+
 images:
- base_image:
+  base_image:
     # Needs login
     name: registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest
+
 dependencies:
   python_interpreter:
     package_system: python3.11
     python_path: /usr/bin/python3.11
-  # Use Ansible Core 2.14
   ansible_core:
     package_pip: ansible-core
-  # Runner
   ansible_runner:
     package_pip: ansible-runner
-  # Collections to be installed using Galaxy
-  galaxy:
-    collections:
-      - infra.aap_configuration
-      - infra.aap_configuration_extended
-      - name: ansible.controller
-      - name: ansible.platform
-      - name: ansible.eda
+  galaxy: requirements.yml
   system: bindep.txt
+
+# Galaxy client settings (formerly in context/ansible.cfg).
+# Pass tokens at build time, e.g.:
+#   ansible-builder build \
+#     --build-arg ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN="$MY_HUB_TOKEN" \
+#     --build-arg ANSIBLE_GALAXY_SERVER_GALD_TOKEN="$GALD_TOKEN"
 additional_build_steps:
   prepend_galaxy:
-  - COPY ./ansible.cfg /etc/ansible/ansible.cfg
+    - ENV ANSIBLE_GALAXY_SERVER_LIST=my_hub,gald
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://console.redhat.com/api/automation-hub/content/published/
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_AUTH_URL=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+    - ARG ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://galaxy.ansible.com/api/
+    - ARG ANSIBLE_GALAXY_SERVER_GALD_TOKEN
+  append_final:
+    - ENV ANSIBLE_GALAXY_SERVER_LIST=my_hub,gald
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://console.redhat.com/api/automation-hub/content/published/
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_AUTH_URL=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://galaxy.ansible.com/api/
 
 options:
   package_manager_path: /usr/bin/microdnf
