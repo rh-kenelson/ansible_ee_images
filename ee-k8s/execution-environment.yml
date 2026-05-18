@@ -6,9 +6,7 @@ images:
     name: registry.access.redhat.com/ubi9/python-311:latest
 
 dependencies:
-  collections:
-    - name: kubernetes.core
-    - name: google.cloud
+  galaxy: requirements.yml
 
 options:
   package_manager_path: /usr/bin/microdnf
