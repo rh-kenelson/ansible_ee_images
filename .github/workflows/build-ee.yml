@@ -79,8 +79,8 @@ jobs:
           ansible-builder build \
             --container-runtime=podman \
             --tag=${{ steps.prep.outputs.fullname }}
-            --build-arg ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN="${{ secrets.AUTOMATION_HUB_TOKEN }}" \
-            --build-arg ANSIBLE_GALAXY_SERVER_GALD_TOKEN="${{ secrets.AUTOMATION_HUB_TOKEN }}"
+            --build-arg "ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN=${HUB_TOKEN}" \
+            --build-arg "ANSIBLE_GALAXY_SERVER_GALD_TOKEN=${HUB_TOKEN}"
 
       - name: Build EE Image with Podman
         working-directory: ${{ matrix.ee_dir }}
