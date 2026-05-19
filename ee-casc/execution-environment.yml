@@ -36,7 +36,7 @@ additional_build_steps:
   prepend_galaxy:
     - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL
     - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
-    - RUN ansible-galaxy collection install --pre --server "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL}" --api-key "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN}" --ignore-certs --collections-path "/usr/share/ansible/collections" infra.aap_configuration infra.aap_configuration_extended ansible.controller ansible.platform ansible.eda
+    - RUN ansible-galaxy collection install --pre --no-deps --server "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL}" --api-key "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN}" --ignore-certs --collections-path "/usr/share/ansible/collections" infra.aap_configuration infra.aap_configuration_extended ansible.controller ansible.platform ansible.eda
 
 options:
   package_manager_path: /usr/bin/microdnf
