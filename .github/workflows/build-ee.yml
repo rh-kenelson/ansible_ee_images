@@ -70,19 +70,20 @@ jobs:
 
       # --- CRITICAL CHANGES: Injected Private Hub Variables into Environment ---
       # Added --container-runtime=podman to ensure it relies entirely on local execution
-      - name: Build Execution Environment Context
+      - name: Generate hub ansible.cfg from secrets
         working-directory: ${{ matrix.ee_dir }}
         env:
           HUB_HOST: ${{ secrets.AUTOMATION_HUB_HOST }}
           HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
+        run: bash scripts/write-hub-ansible-cfg.sh
+
+      - name: Build and tag execution environment
+        working-directory: ${{ matrix.ee_dir }}
         run: |
           ansible-builder create -f execution-environment.yml
           ansible-builder build \
             --container-runtime=podman \
-            --tag=${{ steps.prep.outputs.fullname }}
-            --build-arg "HUB_HOST=${HUB_HOST}" \
-            --build-arg "HUB_TOKEN=${HUB_TOKEN}"
-
+            --tag="${{ steps.prep.outputs.fullname }}"
      # - name: Build EE Image with Podman
        # working-directory: ${{ matrix.ee_dir }}
        # run: |
