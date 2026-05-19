@@ -72,6 +72,8 @@ jobs:
       # Added --container-runtime=podman to ensure it relies entirely on local execution
       - name: Build Execution Environment Context
         working-directory: ${{ matrix.ee_dir }}
+        env:
+          HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
         run: |
           ansible-builder create -f execution-environment.yml
           ansible-builder build \
