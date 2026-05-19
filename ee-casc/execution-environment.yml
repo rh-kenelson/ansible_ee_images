@@ -37,7 +37,7 @@ additional_build_steps:
     - ARG HUB_HOST
     - ARG HUB_TOKEN
     - |
-      RUN printf '%s\n' \
+      RUN mkdir -p /etc/ansible && printf '%s\n' \
         '[galaxy]' \
         'server_list = my_hub, gald' \
         '' \
