@@ -34,20 +34,29 @@ dependencies:
 
 additional_build_steps:
   prepend_galaxy:
-    - ENV ANSIBLE_GALAXY_SERVER_LIST=my_hub,gald
-    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://192.168.3.215/api/galaxy/content/rh-certified/
-    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_VALIDATE_CERTS=false
-    - ARG ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN
-    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN=$ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN
-    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://192.168.3.215/api/galaxy/content/validated/
-    - ENV ANSIBLE_GALAXY_SERVER_GALD_VALIDATE_CERTS=false
-    - ARG ANSIBLE_GALAXY_SERVER_GALD_TOKEN
-    - ENV ANSIBLE_GALAXY_SERVER_GALD_TOKEN=$ANSIBLE_GALAXY_SERVER_GALD_TOKEN
+    - ARG HUB_HOST
+    - ARG HUB_TOKEN
+    - |
+      RUN printf '%s\n' \
+        '[galaxy]' \
+        'server_list = my_hub, gald' \
+        '' \
+        '[galaxy_server.my_hub]' \
+        "url = https://${HUB_HOST}/api/galaxy/content/rh-certified/" \
+        "token = ${HUB_TOKEN}" \
+        'validate_certs = False' \
+        '' \
+        '[galaxy_server.gald]' \
+        "url = https://${HUB_HOST}/api/galaxy/content/validated/" \
+        "token = ${HUB_TOKEN}" \
+        'validate_certs = False' \
+        > /etc/ansible/ansible.cfg
   append_final:
+    - ARG HUB_HOST
     - ENV ANSIBLE_GALAXY_SERVER_LIST=my_hub,gald
-    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://192.168.3.215/api/galaxy/content/rh-certified/
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://${HUB_HOST}/api/galaxy/content/rh-certified/
     - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_VALIDATE_CERTS=false
-    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://192.168.3.215/api/galaxy/content/validated/
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://${HUB_HOST}/api/galaxy/content/validated/
     - ENV ANSIBLE_GALAXY_SERVER_GALD_VALIDATE_CERTS=false
 
 options:
