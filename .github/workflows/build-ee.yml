@@ -84,11 +84,15 @@ jobs:
           #ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_CERTIFIED_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
           # Bypass cert validation during compilation if your Hub relies on a self-signed cert
           ANSIBLE_GALAXY_SERVER_VERIFY_SSL: "false"
-          ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: "--pre"
         run: |
           ansible-builder build \
             --container-runtime=podman \
             --tag=${{ steps.prep.outputs.fullname }}
+            --build-arg ANSIBLE_GALAXY_CLI_COLLECTION_OPTS="--pre" \
+            --build-arg ANSIBLE_GALAXY_SERVER_LIST="automation_hub" \
+            --build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL="https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/validated/" \
+            --build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN="${{ secrets.AUTOMATION_HUB_TOKEN }}" \
+            --build-arg ANSIBLE_GALAXY_SERVER_VERIFY_SSL="false"
 
       - name: Build EE Image with Podman
         working-directory: ${{ matrix.ee_dir }}
