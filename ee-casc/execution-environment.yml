@@ -28,6 +28,7 @@ dependencies:
       - name: ansible.controller
       - name: ansible.platform
       - name: ansible.eda
+      - name: ansible.security
 
   system: bindep.txt
 
