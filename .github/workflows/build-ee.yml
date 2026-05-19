@@ -41,7 +41,8 @@ jobs:
     
     strategy:
       matrix:
-        ee_dir: ${{ fromJson(needs.needs-changes.outputs.matrix) }}
+        # Fixed: Changed "needs-changes" to "detect-changes"
+        ee_dir: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
       fail-fast: false
 
     steps:
