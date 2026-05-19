@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-    # Triggers if any file changes inside any directory starting with 'ee-'
     paths:
       - 'ee-*/**'
   workflow_dispatch:
@@ -37,31 +36,25 @@ jobs:
   # STEP 2: Build the changed EEs in parallel using a matrix
   build-and-push:
     needs: detect-changes
-    # Only run if there are actual EE directories to build
     if: ${{ needs.detect-changes.outputs.matrix != '[]' && needs.detect-changes.outputs.matrix != '' }}
     runs-on: [self-hosted, ansible-ee-runner]
     
     strategy:
       matrix:
-        ee_dir: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
-      fail-fast: false # Don't cancel other builds if one fails
+        ee_dir: ${{ fromJson(needs.needs-changes.outputs.matrix) }}
+      fail-fast: false
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Install Ansible Builder
         run: |
           python3 -m pip install --user --upgrade pip
           python3 -m pip install --user ansible-builder
-          # Ensure the local user's bin directory is in the PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install Ansible Builder
-        run: |
-          pip install --upgrade pip
-          pip install ansible-builder
-      - name: Log in to Private Automation Hub
+      - name: Log in to Private Automation Hub Registry
         run: |
           podman login ${{ secrets.AUTOMATION_HUB_HOST }} \
             -u "${{ secrets.AUTOMATION_HUB_USERNAME }}" \
@@ -74,10 +67,15 @@ jobs:
           TAG="latest"
           echo "fullname=${IMAGE_NAME}:${TAG}" >> $GITHUB_OUTPUT
 
-      # --- FIXED STEP: Explicitly use podman runtime to bypass buildx requirement ---
+      # --- CRITICAL CHANGES: Injected Private Hub Variables into Environment ---
+      # Added --container-runtime=podman to ensure it relies entirely on local execution
       - name: Build Execution Environment Context
         working-directory: ${{ matrix.ee_dir }}
         env:
+          ANSIBLE_GALAXY_SERVER_LIST: automation_hub
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL: https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/published/
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
+          # Bypass cert validation during compilation if your Hub relies on a self-signed cert
           ANSIBLE_GALAXY_SERVER_VERIFY_SSL: "false"
         run: |
           ansible-builder build \
@@ -92,9 +90,3 @@ jobs:
       - name: Push EE Image with Podman
         run: |
           podman push ${{ steps.prep.outputs.fullname }}
-      - name: Log in to Private Automation Hub
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.AUTOMATION_HUB_HOST }}
-          username: ${{ secrets.AUTOMATION_HUB_USERNAME }}
-          password: ${{ secrets.AUTOMATION_HUB_PASSWORD }}
