@@ -34,9 +34,19 @@ dependencies:
 
 additional_build_steps:
   prepend_galaxy:
-    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL
-    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
-    - RUN ansible-galaxy collection install --no-deps --pre --server "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL}" --api-key "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN}" --ignore-certs --collections-path "/usr/share/ansible/collections" infra.aap_configuration infra.aap_configuration_extended ansible.controller ansible.platform ansible.eda
+    - ENV ANSIBLE_GALAXY_SERVER_LIST=my_hub,gald
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://192.168.3.215/api/galaxy/content/rh-certified/
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_VALIDATE_CERTS=false
+    - ARG ANSIBLE_GALAXY_SERVER_MY_HUB_TOKEN
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://192.168.3.215/api/galaxy/content/validated/
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_VALIDATE_CERTS=false
+    - ARG ANSIBLE_GALAXY_SERVER_GALD_TOKEN
+  append_final:
+    - ENV ANSIBLE_GALAXY_SERVER_LIST=my_hub,gald
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_URL=https://192.168.3.215/api/galaxy/content/rh-certified/
+    - ENV ANSIBLE_GALAXY_SERVER_MY_HUB_VALIDATE_CERTS=false
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_URL=https://192.168.3.215/api/galaxy/content/validated/
+    - ENV ANSIBLE_GALAXY_SERVER_GALD_VALIDATE_CERTS=false
 
 options:
   package_manager_path: /usr/bin/microdnf
