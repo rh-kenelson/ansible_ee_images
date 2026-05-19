@@ -84,6 +84,7 @@ jobs:
           ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_CERTIFIED_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
           # Bypass cert validation during compilation if your Hub relies on a self-signed cert
           ANSIBLE_GALAXY_SERVER_VERIFY_SSL: "false"
+          ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: "--pre"
         run: |
           ansible-builder build \
             --container-runtime=podman \
