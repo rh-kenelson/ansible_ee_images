@@ -73,9 +73,15 @@ jobs:
       - name: Build Execution Environment Context
         working-directory: ${{ matrix.ee_dir }}
         env:
-          ANSIBLE_GALAXY_SERVER_LIST: automation_hub
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL: https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/published/
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
+          ANSIBLE_GALAXY_SERVER_LIST: automation_hub_published, automation_hub_certified
+          
+          # 2. Define the URL and Token for the 'published' repo (for infra.* collections)
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_PUBLISHED_URL: https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/validated/
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_PUBLISHED_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
+          
+          # 3. Define the URL and Token for the 'rh-certified' repo (for ansible.controller, etc.)
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_CERTIFIED_URL: https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/rh-certified/
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_CERTIFIED_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
           # Bypass cert validation during compilation if your Hub relies on a self-signed cert
           ANSIBLE_GALAXY_SERVER_VERIFY_SSL: "false"
         run: |
