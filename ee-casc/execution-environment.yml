@@ -34,11 +34,7 @@ dependencies:
 
 additional_build_steps:
   prepend_galaxy:
-    # If your Automation Hub uses a self-signed or internal CA certificate,
-    # uncomment the two lines below to ensure ansible-builder trusts it.
-    # - COPY ./internal-ca.crt /etc/pki/ca-trust/source/anchors/internal-ca.crt
-    # - RUN update-ca-trust
-    []
+    - RUN mkdir -p /etc/ansible && echo -e "[galaxy]\npre_releases = True" > /etc/ansible/ansible.cfg
 
 options:
   package_manager_path: /usr/bin/microdnf
