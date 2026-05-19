@@ -26,7 +26,7 @@ dependencies:
       - infra.aap_configuration
       - infra.aap_configuration_extended
       - name: ansible.controller
-        version: ">=4.5.1"
+        version: ">=4.5.0"
       - name: ansible.platform
       - name: ansible.eda
 
