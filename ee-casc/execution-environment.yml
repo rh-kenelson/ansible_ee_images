@@ -34,7 +34,14 @@ dependencies:
 
 additional_build_steps:
   prepend_galaxy:
-    - RUN mkdir -p /etc/ansible && echo -e "[galaxy]\npre_releases = True" > /etc/ansible/ansible.cfg
+    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL
+    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
+    - RUN ansible-galaxy collection install --pre \
+        --server "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL}" \
+        --api-key "${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN}" \
+        --ignore-certs \
+        -r requirements.yml \
+        --collections-path "/usr/share/ansible/collections"
 
 options:
   package_manager_path: /usr/bin/microdnf
