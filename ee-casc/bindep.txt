@@ -1,0 +1,10 @@
+# Add 'pkg-config' and other common build dependencies.
+# systemd-python needs pkg-config. Other packages may need similar tools.
+pkg-config
+systemd-devel
+krb5-devel
+#python39-devel
+python3.11-devel
+python3-devel
+gcc
+make
