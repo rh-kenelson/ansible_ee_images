@@ -72,19 +72,8 @@ jobs:
       # Added --container-runtime=podman to ensure it relies entirely on local execution
       - name: Build Execution Environment Context
         working-directory: ${{ matrix.ee_dir }}
-        env:
-          ANSIBLE_GALAXY_SERVER_LIST: automation_hub
-          
-          # 2. Define the URL and Token for the 'published' repo (for infra.* collections)
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL: https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/validated/
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
-          
-          # 3. Define the URL and Token for the 'rh-certified' repo (for ansible.controller, etc.)
-         # ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_CERTIFIED_URL: https://${{ secrets.AUTOMATION_HUB_HOST }}/api/galaxy/content/rh-certified/
-          #ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_CERTIFIED_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
-          # Bypass cert validation during compilation if your Hub relies on a self-signed cert
-          ANSIBLE_GALAXY_SERVER_VERIFY_SSL: "false"
         run: |
+          ansible-builder create -f execution-environment.yml
           ansible-builder build \
             --container-runtime=podman \
             --tag=${{ steps.prep.outputs.fullname }}
