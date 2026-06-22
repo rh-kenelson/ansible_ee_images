@@ -23,8 +23,8 @@ dependencies:
     - krb5-devel
     - gcc
     - python3.12-devel
-    - systemd-devel   # <-- Added to provide libsystemd.pc
-    - pkgconfig       # <-- Added to allow pip to locate system libraries
+    - systemd-devel 
+    - pkgconfig       
 
 additional_build_files:
   - src: files/krb5.conf
