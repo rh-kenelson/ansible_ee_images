@@ -1,0 +1,36 @@
+version: 3
+
+options:
+  package_manager_path: /usr/bin/microdnf
+
+images:
+  base_image:
+    name: registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel9:latest
+
+dependencies:
+  galaxy:
+    collections:
+      - name: ansible.windows
+      - name: community.windows
+  python:
+    - pywinrm[kerberos]
+    - pypsrp[kerberos]
+    - requests-kerberos
+    - gssapi
+  system:
+    - krb5-workstation
+    - krb5-libs
+    - krb5-devel
+    - gcc
+    - python3.12-devel
+    - systemd-devel   # <-- Added to provide libsystemd.pc
+    - pkgconfig       # <-- Added to allow pip to locate system libraries
+
+additional_build_files:
+  - src: files/krb5.conf
+    dest: configs
+
+additional_build_steps:
+  append_final:
+    - COPY _build/configs/krb5.conf /etc/krb5.conf
+    - RUN chmod 644 /etc/krb5.conf

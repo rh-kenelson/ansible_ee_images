@@ -1,0 +1,4 @@
+pywinrm[kerberos]
+pypsrp[kerberos]
+requests-kerberos
+gssapi

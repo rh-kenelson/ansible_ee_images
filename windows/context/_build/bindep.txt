@@ -1,0 +1,7 @@
+krb5-workstation
+krb5-libs
+krb5-devel
+gcc
+python3.12-devel
+systemd-devel
+pkgconfig
